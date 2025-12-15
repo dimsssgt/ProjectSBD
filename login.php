@@ -403,7 +403,7 @@
     <div class="container">
         <div class="left-section">
             <h1>Welcome Back!</h1>
-            <p>Login to access your dashboard and manage your campaigns effectively</p>
+            <p>Login to access your Evalify dashboard</p>
             
             <div class="footer-links">
                 <a href="#">Terms</a>
