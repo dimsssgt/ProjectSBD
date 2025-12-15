@@ -72,6 +72,11 @@ $result_penilaian_terbaru = mysqli_query($koneksi, $query_penilaian_terbaru);
         .sidebar-brand {
             margin-bottom: 2rem;
         }
+        .judul{
+            font-size: 40px;
+            margin-top: 30px;
+            margin-bottom: 1rem;
+        }
         
         .sidebar-brand h4 {
             color: var(--primary-color);
@@ -155,8 +160,8 @@ $result_penilaian_terbaru = mysqli_query($koneksi, $query_penilaian_terbaru);
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-brand">
-            <h4>Sistem Penilaian Pekerja</h4>
-            <small class="text-muted">Berbasis Proyek</small>
+            <h4 class="judul" >Evalify</h4>
+            <small class="text-muted">Sistem Penilaian Pekerja Berbasis Proyek </small>
         </div>
         
         <ul class="sidebar-menu">

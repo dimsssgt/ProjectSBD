@@ -1,77 +1,70 @@
 <?php
-    require_once 'koneksi.php'; 
+    require_once 'koneksi.php';
     $error_message = '';
     $success_message = '';
     if (!$koneksi) {
         $error_message = "Koneksi database gagal!";
     }
-
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && $koneksi) {
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
-        $repeat_password = $_POST['repeat_password'] ?? '';
-        $role = $_POST['role'] ?? '';
-        $terms = isset($_POST['terms']);
+        $remember = isset($_POST['remember']);
 
-        if (empty($email) || empty($password) || empty($repeat_password) || empty($role)) {
-            $error_message = "Semua field harus diisi!";
+        // Validasi Input
+        if (empty($email) || empty($password)) {
+            $error_message = "Email dan password harus diisi!";
         } 
         elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $error_message = "Format email tidak valid!";
         } 
-        elseif ($password !== $repeat_password) {
-            $error_message = "Password tidak cocok!";
-        } 
-        elseif (strlen($password) < 8) {
-            $error_message = "Password minimal 8 karakter!";
-        }
-        elseif (!preg_match('/[A-Za-z]/', $password) || !preg_match('/[0-9]/', $password)) {
-            $error_message = "Password harus mengandung huruf dan angka!";
-        }
-        elseif (!in_array($role, ['karyawan', 'manager'])) {
-            $error_message = "Role tidak valid!";
-        }
-        elseif (!$terms) {
-            $error_message = "Anda harus menyetujui terms & conditions!";
-        } 
         else {
-            // Escape input untuk keamanan
             $email = mysqli_real_escape_string($koneksi, $email);
-            $role = mysqli_real_escape_string($koneksi, $role);
+            $query = "SELECT * FROM users WHERE email = '$email'";
+            $result = mysqli_query($koneksi, $query);
             
-            // Cek apakah email sudah terdaftar
-            $check_query = "SELECT id_user FROM users WHERE email = '$email'";
-            $check_result = mysqli_query($koneksi, $check_query);
-            
-            if (mysqli_num_rows($check_result) > 0) {
-                $error_message = "Email sudah terdaftar! Silakan gunakan email lain atau <a href='login.php'>login</a>.";
-            } else {
-                // Hash password dengan bcrypt
-                $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-                
-                // Insert ke tabel users
-                $insert_query = "INSERT INTO users (email, password, role) 
-                                VALUES ('$email', '$hashed_password', '$role')";
-                
-                if (mysqli_query($koneksi, $insert_query)) {
-                    $success_message = "Registrasi berhasil! Silakan <a href='login.php'>login</a> untuk melanjutkan.";
+            if (mysqli_num_rows($result) > 0) {
+                $user = mysqli_fetch_assoc($result);
+                if (password_verify($password, $user['password'])) {
+                    if (isset($user['is_active']) && $user['is_active'] == 0) {
+                        $error_message = "Akun Anda tidak aktif. Hubungi administrator.";
+                    } else {
+                        session_start();
+                        $_SESSION['user_id'] = $user['id_user'];
+                        $_SESSION['email'] = $user['email'];
+                        $_SESSION['role'] = $user['role'];
+                        $_SESSION['logged_in'] = true;
+                        
+                        // Update last login (jika ada kolom last_login)
+                        $update_query = "UPDATE users SET updated_at = NOW() WHERE id_user = " . $user['id_user'];
+                        mysqli_query($koneksi, $update_query);
                     
-                    // Reset form
-                    $_POST = array();
+                        if ($remember) {
+                            setcookie('user_email', $email, time() + (86400 * 30), "/"); // 30 hari
+                        }
+                        if ($user['role'] === 'manager') {
+                            header("Location: dashboard.php");
+                            exit();
+                        } else {
+                            header("Location: dashboard.php");
+                            exit();
+                        }
+                    }
                 } else {
-                    $error_message = "Error: " . mysqli_error($koneksi);
+                    $error_message = "Password salah!";
                 }
+            } else {
+                $error_message = "Email tidak terdaftar!";
             }
         }
     }
+    $saved_email = $_COOKIE['user_email'] ?? '';
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - Your Social Campaigns</title>
+    <title>Login - Your Social Campaigns</title>
     <style>
         * {
             margin: 0;
@@ -175,8 +168,7 @@
             position: relative;
         }
 
-        .form-group input,
-        .form-group select {
+        .form-group input {
             width: 100%;
             padding: 14px 16px;
             border: 1px solid #e5e5e5;
@@ -186,20 +178,10 @@
             background: #fff;
         }
 
-        .form-group input:focus,
-        .form-group select:focus {
+        .form-group input:focus {
             outline: none;
             border-color: #0066ff;
             box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
-        }
-
-        .form-group select {
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23666' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 16px center;
-            padding-right: 40px;
         }
 
         .password-toggle {
@@ -219,39 +201,67 @@
             color: #666;
         }
 
-        .password-hint {
-            font-size: 0.75rem;
-            color: #999;
-            margin-top: 6px;
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
         }
 
-        .checkbox-group {
+        .remember-me {
             display: flex;
             align-items: center;
-            margin-bottom: 20px;
         }
 
-        .checkbox-group input[type="checkbox"] {
+        .remember-me input[type="checkbox"] {
             width: 18px;
             height: 18px;
             margin-right: 8px;
             cursor: pointer;
         }
 
-        .checkbox-group label {
+        .remember-me label {
             font-size: 0.85rem;
             color: #666;
             cursor: pointer;
             margin: 0;
         }
 
-        .checkbox-group a {
+        .forgot-password {
             color: #0066ff;
             text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
         }
 
-        .checkbox-group a:hover {
+        .forgot-password:hover {
             text-decoration: underline;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #0066ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 24px;
+        }
+
+        .submit-btn:hover {
+            background: #0052cc;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .divider {
@@ -309,45 +319,19 @@
             background: #f9f9f9;
         }
 
-        .submit-btn {
-            width: 100%;
-            padding: 14px;
-            background: #0066ff;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .submit-btn:hover {
-            background: #0052cc;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
-        }
-
-        .submit-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .signin-link {
+        .signup-link {
             text-align: center;
-            margin-top: 20px;
             font-size: 0.9rem;
             color: #666;
         }
 
-        .signin-link a {
+        .signup-link a {
             color: #0066ff;
             text-decoration: none;
             font-weight: 500;
         }
 
-        .signin-link a:hover {
+        .signup-link a:hover {
             text-decoration: underline;
         }
 
@@ -356,6 +340,21 @@
             align-items: center;
             gap: 20px;
             margin-top: 40px;
+        }
+
+        .language-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .language-selector img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
         }
 
         .footer-links a {
@@ -391,14 +390,20 @@
             .social-buttons {
                 grid-template-columns: 1fr;
             }
+
+            .form-options {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="left-section">
-            <h1>Evalify</h1>
-            <p>Penilaian kinerja karyawan berbasis proyek</p>
+            <h1>Welcome Back!</h1>
+            <p>Login to access your dashboard and manage your campaigns effectively</p>
             
             <div class="footer-links">
                 <a href="#">Terms</a>
@@ -409,7 +414,7 @@
 
         <div class="form-card">
             <div class="form-header">
-                <h2>Sign Up</h2>
+                <h2>Login</h2>
                 <p>Your Social Campaigns</p>
             </div>
 
@@ -425,46 +430,31 @@
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="" id="signupForm">
+            <form method="POST" action="" id="loginForm">
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" name="email" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" required>
+                    <input type="email" name="email" value="<?php echo htmlspecialchars($saved_email); ?>" required autofocus>
                 </div>
 
                 <div class="form-group">
                     <label>Password</label>
                     <div class="input-wrapper">
                         <input type="password" name="password" id="password" required>
-                        <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                        <button type="button" class="password-toggle" onclick="togglePassword()">
                             <span id="eyeIcon">👁</span>
                         </button>
                     </div>
-                    <p class="password-hint">Use 8 or more characters with a mix of letters, numbers & symbols.</p>
                 </div>
 
-                <div class="form-group">
-                    <label>Repeat Password</label>
-                    <div class="input-wrapper">
-                        <input type="password" name="repeat_password" id="repeat_password" required>
-                        <button type="button" class="password-toggle" onclick="togglePassword('repeat_password')">
-                            <span id="eyeIcon2">👁</span>
-                        </button>
+                <div class="form-options">
+                    <div class="remember-me">
+                        <input type="checkbox" name="remember" id="remember" <?php echo $saved_email ? 'checked' : ''; ?>>
+                        <label for="remember">Remember me</label>
                     </div>
+                    <a href="#" class="forgot-password">Forgot Password?</a>
                 </div>
 
-                <div class="form-group">
-                    <label>Register as</label>
-                    <select name="role" required>
-                        <option value="">-- Pilih Role --</option>
-                        <option value="karyawan" <?php echo (isset($_POST['role']) && $_POST['role'] === 'karyawan') ? 'selected' : ''; ?>>Karyawan</option>
-                        <option value="manager" <?php echo (isset($_POST['role']) && $_POST['role'] === 'manager') ? 'selected' : ''; ?>>Manager</option>
-                    </select>
-                </div>
-
-                <div class="checkbox-group">
-                    <input type="checkbox" name="terms" id="terms" required>
-                    <label for="terms">I accept the <a href="#">Term</a></label>
-                </div>
+                <button type="submit" class="submit-btn">Login</button>
 
                 <div class="divider">Or with</div>
 
@@ -476,29 +466,27 @@
                             <path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z"/>
                             <path fill="#EA4335" d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.426 0 9.003 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z"/>
                         </svg>
-                        Sign Up with Google
+                        Login with Google
                     </a>
                     <a href="#" class="social-btn">
                         <svg width="18" height="18" viewBox="0 0 18 18">
                             <path d="M14.94 5.19A7.2 7.2 0 009 1.8c-3.977 0-7.2 3.223-7.2 7.2 0 1.414.41 2.73 1.117 3.844L1.8 16.2l3.47-1.088A7.165 7.165 0 009 16.2c3.977 0 7.2-3.223 7.2-7.2 0-1.932-.754-3.745-2.123-5.073z" fill="#000"/>
                         </svg>
-                        Sign Up with Apple
+                        Login with Apple
                     </a>
                 </div>
 
-                <button type="submit" class="submit-btn">Sign Up</button>
-
-                <div class="signin-link">
-                    Already have an account? <a href="login.php">Sign In</a>
+                <div class="signup-link">
+                    Don't have an account? <a href="index.php">Sign Up</a>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        function togglePassword(id) {
-            const input = document.getElementById(id);
-            const icon = document.getElementById(id === 'password' ? 'eyeIcon' : 'eyeIcon2');
+        function togglePassword() {
+            const input = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
             
             if (input.type === 'password') {
                 input.type = 'text';
@@ -508,18 +496,12 @@
                 icon.textContent = '👁';
             }
         }
-
-        // Validasi password match real-time
-        document.getElementById('repeat_password').addEventListener('input', function() {
-            const password = document.getElementById('password').value;
-            const repeatPassword = this.value;
-            
-            if (repeatPassword && password !== repeatPassword) {
-                this.setCustomValidity('Password tidak cocok!');
-            } else {
-                this.setCustomValidity('');
+        window.onload = function() {
+            const emailInput = document.querySelector('input[name="email"]');
+            if (!emailInput.value) {
+                emailInput.focus();
             }
-        });
+        }
     </script>
 </body>
 </html>
