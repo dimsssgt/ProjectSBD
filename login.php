@@ -10,7 +10,6 @@
         $password = $_POST['password'] ?? '';
         $remember = isset($_POST['remember']);
 
-        // Validasi Input
         if (empty($email) || empty($password)) {
             $error_message = "Email dan password harus diisi!";
         } 
@@ -33,19 +32,15 @@
                         $_SESSION['email'] = $user['email'];
                         $_SESSION['role'] = $user['role'];
                         $_SESSION['logged_in'] = true;
-                        
-                        // Update last login (jika ada kolom last_login)
-                        $update_query = "UPDATE users SET updated_at = NOW() WHERE id_user = " . $user['id_user'];
-                        mysqli_query($koneksi, $update_query);
                     
                         if ($remember) {
-                            setcookie('user_email', $email, time() + (86400 * 30), "/"); // 30 hari
+                            setcookie('user_email', $email, time() + (86400 * 30), "/");
                         }
                         if ($user['role'] === 'manager') {
                             header("Location: dashboard.php");
                             exit();
                         } else {
-                            header("Location: dashboard.php");
+                            header("Location: penilaian_karyawan.php");
                             exit();
                         }
                     }

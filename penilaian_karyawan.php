@@ -57,7 +57,7 @@ if(isset($_GET['hapus'])) {
     }
 }
 
-// Ambil data penilaian dengan join
+// Ambil data penilaian join
 $query = "SELECT n.*, 
           k.nama as nama_karyawan, 
           pr.nama_proyek,
@@ -71,18 +71,18 @@ $query = "SELECT n.*,
           ORDER BY n.tanggal_penilaian DESC";
 $result = mysqli_query($koneksi, $query);
 
-// Ambil data penugasan untuk dropdown
+// Ambil data penugasan
 $query_penugasan = "SELECT pg.*, k.nama as nama_karyawan, pr.nama_proyek 
                     FROM penugasan pg
                     LEFT JOIN karyawan k ON pg.id_karyawan = k.id_karyawan
                     LEFT JOIN proyek pr ON pg.id_proyek = pr.id_proyek";
 $result_penugasan = mysqli_query($koneksi, $query_penugasan);
 
-// Ambil data manager untuk dropdown
+// Ambil data manager
 $query_manager = "SELECT * FROM manager";
 $result_manager = mysqli_query($koneksi, $query_manager);
 
-// Function untuk kategori nilai
+// kategori nilai
 function getKategoriNilai($nilai) {
     if($nilai >= 90) return ['label' => 'Excellent', 'class' => 'success'];
     if($nilai >= 80) return ['label' => 'Baik', 'class' => 'primary'];
@@ -188,36 +188,6 @@ function getKategoriNilai($nilai) {
         </div>
         
         <ul class="sidebar-menu">
-            <li>
-                <a href="dashboard.php">
-                    <i class="bi bi-speedometer2"></i>
-                    Dashboard
-                </a>
-            </li>
-            <li>
-                <a href="departemen.php">
-                    <i class="bi bi-building"></i>
-                    Departemen
-                </a>
-            </li>
-            <li>
-                <a href="karyawan.php">
-                    <i class="bi bi-people"></i>
-                    Karyawan
-                </a>
-            </li>
-            <li>
-                <a href="proyek.php">
-                    <i class="bi bi-briefcase"></i>
-                    Proyek
-                </a>
-            </li>
-            <li>
-                <a href="penugasan.php">
-                    <i class="bi bi-clipboard-check"></i>
-                    Penugasan
-                </a>
-            </li>
             <li>
                 <a href="penilaian.php" class="active">
                     <i class="bi bi-star"></i>

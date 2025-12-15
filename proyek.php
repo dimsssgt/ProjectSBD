@@ -162,7 +162,6 @@ function getStatusProyek($tanggal_mulai, $tanggal_selesai) {
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-brand">
             <h4>Sistem Penilaian Pekerja</h4>
@@ -209,7 +208,6 @@ function getStatusProyek($tanggal_mulai, $tanggal_selesai) {
         </ul>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
@@ -286,7 +284,6 @@ function getStatusProyek($tanggal_mulai, $tanggal_selesai) {
         </div>
     </div>
 
-    <!-- Modal Tambah -->
     <div class="modal fade" id="modalTambah" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -337,7 +334,6 @@ function getStatusProyek($tanggal_mulai, $tanggal_selesai) {
         </div>
     </div>
 
-    <!-- Modal Edit -->
     <div class="modal fade" id="modalEdit" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">

@@ -148,7 +148,6 @@ $result_dept = mysqli_query($koneksi, $query_dept);
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-brand">
             <h4>Sistem Penilaian Pekerja</h4>
@@ -195,7 +194,6 @@ $result_dept = mysqli_query($koneksi, $query_dept);
         </ul>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
@@ -272,7 +270,6 @@ $result_dept = mysqli_query($koneksi, $query_dept);
         </div>
     </div>
 
-    <!-- Modal Tambah -->
     <div class="modal fade" id="modalTambah" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -325,7 +322,6 @@ $result_dept = mysqli_query($koneksi, $query_dept);
         </div>
     </div>
 
-    <!-- Modal Edit -->
     <div class="modal fade" id="modalEdit" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">

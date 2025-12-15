@@ -35,28 +35,24 @@
             $error_message = "Anda harus menyetujui terms & conditions!";
         } 
         else {
-            // Escape input untuk keamanan
             $email = mysqli_real_escape_string($koneksi, $email);
             $role = mysqli_real_escape_string($koneksi, $role);
-            
-            // Cek apakah email sudah terdaftar
+
             $check_query = "SELECT id_user FROM users WHERE email = '$email'";
             $check_result = mysqli_query($koneksi, $check_query);
             
             if (mysqli_num_rows($check_result) > 0) {
                 $error_message = "Email sudah terdaftar! Silakan gunakan email lain atau <a href='login.php'>login</a>.";
             } else {
-                // Hash password dengan bcrypt
+                // Hash password
                 $hashed_password = password_hash($password, PASSWORD_BCRYPT);
                 
-                // Insert ke tabel users
                 $insert_query = "INSERT INTO users (email, password, role) 
                                 VALUES ('$email', '$hashed_password', '$role')";
                 
                 if (mysqli_query($koneksi, $insert_query)) {
                     $success_message = "Registrasi berhasil! Silakan <a href='login.php'>login</a> untuk melanjutkan.";
                     
-                    // Reset form
                     $_POST = array();
                 } else {
                     $error_message = "Error: " . mysqli_error($koneksi);

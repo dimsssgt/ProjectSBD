@@ -157,7 +157,6 @@ $result_penilaian_terbaru = mysqli_query($koneksi, $query_penilaian_terbaru);
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-brand">
             <h4 class="judul" >Evalify</h4>
@@ -204,14 +203,12 @@ $result_penilaian_terbaru = mysqli_query($koneksi, $query_penilaian_terbaru);
         </ul>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
         <div class="mb-4">
             <h2>Dashboard</h2>
             <p class="text-muted">Selamat datang di Sistem Penilaian Pekerja Berbasis Proyek</p>
         </div>
 
-        <!-- Statistik Cards -->
         <div class="row g-4 mb-4">
             <div class="col-md-3">
                 <div class="stat-card">
@@ -291,7 +288,6 @@ $result_penilaian_terbaru = mysqli_query($koneksi, $query_penilaian_terbaru);
                 </div>
             </div>
 
-            <!-- Penilaian Terbaru -->
             <div class="col-md-6">
                 <div class="card-custom p-4">
                     <h5 class="mb-3">Penilaian Terbaru</h5>

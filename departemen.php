@@ -133,7 +133,6 @@ $result = mysqli_query($koneksi, $query);
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-brand">
             <h4>Sistem Penilaian Pekerja</h4>
